@@ -7,7 +7,7 @@
 from pathlib import Path
 import cv2
 
-ROI = (120, 200, 200, 200)
+ROI = (250, 230, 70, 70)
 
 # Umbrales (ajustables)
 MEAN_MAX = 35.0     # cuanto más bajo, más negro

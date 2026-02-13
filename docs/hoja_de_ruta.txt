@@ -1,20 +1,30 @@
-# Hoja de ruta â€“ musica_new
+
+Hoja de ruta – musica_new
 
 ## Implementado
-- (vacÃ­o)
 
-## Por implementar â€“ CRÃTICAS
-- (vacÃ­o)
+- Detección de rank y suit por template matching (40m)
+- Detección TIME por template matching (20m)
+- Detección NOBOARD por análisis estadístico (20m)
+- Orquestación modular en main.py (20m)
+- Limpieza de salida vía run_quiet() (10m)
 
-## Por implementar â€“ NO CRÃTICAS
-- (vacÃ­o)
+## Por implementar – CRÍTICAS
 
-# Reglas de dependencias (DEP)
-# - La tarea bloqueante va arriba.
-# - Las tareas dependientes van justo debajo y llevan:
-#   [DEP: nombre_tarea_padre]
-#
-# Ejemplo:
-# - Importador XML base (CRÃTICA)
-#     [DEP: Importador XML base] AÃ±adir validaciÃ³n de duplicados
-#     [DEP: Importador XML base] Crear tests parsing
+
+- Crear detector DEALER (40m)
+- Crear detector stack efectivo (60m)
+- Crear detector bets (p1bet, p2bet, p3bet) (90m)
+- Crear detector nombres (p2name, p3name) (90m)
+- Integración consulta Postgres para p2tipo y p3tipo (60m)
+	[DEP: Crear detector nombres (p2name, p3name)]
+- Implementar loop de reintento si mano inválida (30m)
+
+## Por implementar – NO CRÍTICAS
+
+- Mejorar detección NOBOARD con template matching (60m)- Separar detector de rank y suit en módulos independientes (60m)
+
+- Pipeline tipo máquina de estados (90m)
+- Migrar de imagen estática a captura continua (90m)
+- Optimización multi-scale matching (60m)
+- Refactor arquitectura carpetas detection/ (60m)

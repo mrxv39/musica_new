@@ -1,26 +1,43 @@
 # main.py
-# Punto de entrada principal del proyecto musica_new
+# Orquestador simple: mano -> time -> noboard
 
 import sys
 
-print("Starting musica_new...")
 
-try:
-    import reconocer_mano
-except ImportError as e:
-    print("Error importing reconocer_mano:", e)
+def _call(module_name):
+    try:
+        mod = __import__(module_name)
+    except Exception as e:
+        print(f"Error importing {module_name}: {e}")
+        sys.exit(1)
+
+    if hasattr(mod, "run"):
+        return mod.run()
+    if hasattr(mod, "main"):
+        return mod.main()
+
+    print(f"{module_name} has no run() or main()")
     sys.exit(1)
 
 
-def _execute():
-    if hasattr(reconocer_mano, "run") and callable(reconocer_mano.run):
-        reconocer_mano.run()
-    elif hasattr(reconocer_mano, "main") and callable(reconocer_mano.main):
-        reconocer_mano.main()
-    else:
-        print("reconocer_mano does not expose run() or main()")
-        sys.exit(1)
+def main():
+    print("Starting musica_new...")
+
+    # 1) MANO
+    mano_result = _call("reconocer_mano")
+
+    # 2) TIME
+    time_result = _call("encontrar_time")
+
+    # 3) NOBOARD
+    noboard_result = _call("encontrar_noboard")
+
+    # Imprimir solo resumen limpio
+    print("\n--- RESULT ---")
+    print("mano:", mano_result if mano_result is not None else "")
+    print("time:", time_result if time_result is not None else "")
+    print("noboard:", noboard_result if noboard_result is not None else "")
 
 
 if __name__ == "__main__":
-    _execute()
+    main()
