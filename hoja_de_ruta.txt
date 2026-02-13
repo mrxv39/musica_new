@@ -1,0 +1,28 @@
+HOJA DE RUTA – musica_new
+
+FASE 1 (Actual) – Base funcional
+✔ Recorte de cartas
+✔ Template matching rank
+✔ Detector TIME
+✔ Detector NOBOARD
+
+FASE 2 – Separación lógica
+- Separar rank y suit completamente
+- Implementar detector de palo independiente
+- Crear estructura Card(rank, suit)
+
+FASE 3 – Orquestador
+- Crear pipeline central:
+  - detectar_time()
+  - detectar_noboard()
+  - detectar_mano()
+- Definir máquina de estados
+
+FASE 4 – Optimización
+- Multi-scale matching si necesario
+- Reducción de ROI dinámico
+- Performance tuning
+
+FASE 5 – Integración real-time
+- Sustituir imagen estática por captura continua
+- Control de ciclo y estados

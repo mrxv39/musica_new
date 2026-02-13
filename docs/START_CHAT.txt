@@ -1,0 +1,6 @@
+CHECKLIST NUEVO CHAT (OBLIGATORIO)
+1) Pegar master prompt (promp_maestro_chatgpt_proyectos...)
+2) Pegar hoja_de_ruta.txt actual
+3) Pegar wiki_tecnica.md / wiki_usuario.md / changelog.md
+4) Indicar objetivo sprint (90m)
+5) Indicar Ãºltimo commit (hash + mensaje)

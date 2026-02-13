@@ -1,0 +1,20 @@
+# Hoja de ruta â€“ musica_new
+
+## Implementado
+- (vacÃ­o)
+
+## Por implementar â€“ CRÃTICAS
+- (vacÃ­o)
+
+## Por implementar â€“ NO CRÃTICAS
+- (vacÃ­o)
+
+# Reglas de dependencias (DEP)
+# - La tarea bloqueante va arriba.
+# - Las tareas dependientes van justo debajo y llevan:
+#   [DEP: nombre_tarea_padre]
+#
+# Ejemplo:
+# - Importador XML base (CRÃTICA)
+#     [DEP: Importador XML base] AÃ±adir validaciÃ³n de duplicados
+#     [DEP: Importador XML base] Crear tests parsing
