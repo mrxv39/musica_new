@@ -12,6 +12,7 @@ import cv2
 
 import reconocer_mano
 import encontrar_dealer
+import encontrar_stackefectivo
 
 
 # ---- Config ----
@@ -35,8 +36,7 @@ def _latest_image_path() -> str:
 
 
 def _read_gray(image_path: str):
-    img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-    return img
+    return cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 
 
 def _crop(img_gray, roi):
@@ -93,7 +93,7 @@ def reconocer_mano_quiet(image_path: str) -> str:
         except Exception:
             pass
 
-    # 2) Usa run(image_path) pero capturando prints y extrayendo "MANO = xxxx"
+    # 2) Usa run(image_path) capturando prints y extrayendo "MANO = xxxx"
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
         try:
@@ -101,18 +101,15 @@ def reconocer_mano_quiet(image_path: str) -> str:
         except TypeError:
             ret = reconocer_mano.run()
 
-    # si devuelve string, úsala
     if isinstance(ret, str) and ret.strip():
         return ret.strip()
 
     text = buf.getvalue()
 
-    # Busca patrón tipo "MANO = 3c8h"
     m = re.search(r"MANO\s*=\s*([0-9TJQKA][cdhs][0-9TJQKA][cdhs])", text, re.IGNORECASE)
     if m:
         return m.group(1).lower()
 
-    # fallback: intenta encontrar dos cartas sueltas tipo "3c 8h"
     m2 = re.search(r"\b([0-9TJQKA][cdhs])\s*([0-9TJQKA][cdhs])\b", text, re.IGNORECASE)
     if m2:
         return (m2.group(1) + m2.group(2)).lower()
@@ -128,7 +125,7 @@ def run_pipeline_once(image_path: str = "") -> dict:
     time_found = detectar_time_quiet(image_path) if image_path else False
     noboard_found = detectar_noboard_quiet(image_path) if image_path else False
 
-    # dealer (usa tu módulo)
+    # dealer
     p1d = p2d = p3d = False
     try:
         if hasattr(encontrar_dealer, "run_quiet") and image_path:
@@ -138,7 +135,21 @@ def run_pipeline_once(image_path: str = "") -> dict:
 
     dealer = "p1" if p1d else ("p2" if p2d else ("p3" if p3d else ""))
 
-    return {"mano": mano, "time": bool(time_found), "noboard": bool(noboard_found), "dealer": dealer}
+    # stack efectivo
+    stackefectivo = 0.0
+    try:
+        if image_path:
+            stackefectivo = float(encontrar_stackefectivo.run_quiet(image_path))
+    except Exception:
+        stackefectivo = 0.0
+
+    return {
+        "mano": mano,
+        "time": bool(time_found),
+        "noboard": bool(noboard_found),
+        "dealer": dealer,
+        "stackefectivo": stackefectivo,
+    }
 
 
 def main():
@@ -150,6 +161,7 @@ def main():
     print(f"time: {result.get('time', False)}")
     print(f"noboard: {result.get('noboard', False)}")
     print(f"dealer: {result.get('dealer','')}")
+    print(f"stackefectivo: {result.get('stackefectivo', 0.0)}")
 
 
 if __name__ == "__main__":
