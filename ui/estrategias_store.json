@@ -1,0 +1,31 @@
+{
+  "BASE": [
+    {
+      "id": "BTN__BTN_vs_BB_SB__hBTN__b0-0-0__s0-0-0",
+      "payload": {
+        "estrategia_global": "BASE",
+        "spot": "BTN",
+        "p1_position": "BTN",
+        "p1_bet_min": 0.0,
+        "p1_bet_max": 75.0,
+        "p1_stack_min": 0.0,
+        "p1_stack_max": 75.0,
+        "p1_stackef_min": 0.0,
+        "p1_stackef_max": 75.0,
+        "p2_position": "SB",
+        "p2_tipo": "fish",
+        "p2_bet_min": 0.0,
+        "p2_bet_max": 75.0,
+        "p2_stack_min": 0.0,
+        "p2_stack_max": 75.0,
+        "p3_position": "BB",
+        "p3_tipo": "fish",
+        "p3_bet_min": 0.0,
+        "p3_bet_max": 75.0,
+        "p3_stack_min": 0.0,
+        "p3_stack_max": 75.0,
+        "situacion": "BTN_vs_BB_SB"
+      }
+    }
+  ]
+}
