@@ -14,6 +14,7 @@ import reconocer_mano
 import encontrar_dealer
 import encontrar_stackefectivo
 import encontrar_bets
+import encontrar_stacks
 
 
 # ---- Config ----
@@ -155,6 +156,17 @@ def run_pipeline_once(image_path: str = "") -> dict:
     except Exception:
         p1bet = p2bet = p3bet = 0.0
 
+    # stacks
+    p1stack = p2stack = p3stack = 0.0
+    try:
+        if image_path:
+            p1stack, p2stack, p3stack = encontrar_stacks.run_quiet(image_path)
+            p1stack = float(p1stack)
+            p2stack = float(p2stack)
+            p3stack = float(p3stack)
+    except Exception:
+        p1stack = p2stack = p3stack = 0.0
+
     return {
         "mano": mano,
         "time": bool(time_found),
@@ -164,6 +176,9 @@ def run_pipeline_once(image_path: str = "") -> dict:
         "p1bet": p1bet,
         "p2bet": p2bet,
         "p3bet": p3bet,
+        "p1stack": p1stack,
+        "p2stack": p2stack,
+        "p3stack": p3stack,
     }
 
 
@@ -180,6 +195,9 @@ def main():
     print(f"p1bet: {result.get('p1bet', 0.0)}")
     print(f"p2bet: {result.get('p2bet', 0.0)}")
     print(f"p3bet: {result.get('p3bet', 0.0)}")
+    print(f"p1stack: {result.get('p1stack', 0.0)}")
+    print(f"p2stack: {result.get('p2stack', 0.0)}")
+    print(f"p3stack: {result.get('p3stack', 0.0)}")
 
 
 if __name__ == "__main__":
