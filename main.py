@@ -13,6 +13,7 @@ import cv2
 import reconocer_mano
 import encontrar_dealer
 import encontrar_stackefectivo
+import encontrar_bets
 
 
 # ---- Config ----
@@ -143,12 +144,26 @@ def run_pipeline_once(image_path: str = "") -> dict:
     except Exception:
         stackefectivo = 0.0
 
+    # bets
+    p1bet = p2bet = p3bet = 0.0
+    try:
+        if image_path:
+            p1bet, p2bet, p3bet = encontrar_bets.run_quiet(image_path)
+            p1bet = float(p1bet)
+            p2bet = float(p2bet)
+            p3bet = float(p3bet)
+    except Exception:
+        p1bet = p2bet = p3bet = 0.0
+
     return {
         "mano": mano,
         "time": bool(time_found),
         "noboard": bool(noboard_found),
         "dealer": dealer,
         "stackefectivo": stackefectivo,
+        "p1bet": p1bet,
+        "p2bet": p2bet,
+        "p3bet": p3bet,
     }
 
 
@@ -162,6 +177,9 @@ def main():
     print(f"noboard: {result.get('noboard', False)}")
     print(f"dealer: {result.get('dealer','')}")
     print(f"stackefectivo: {result.get('stackefectivo', 0.0)}")
+    print(f"p1bet: {result.get('p1bet', 0.0)}")
+    print(f"p2bet: {result.get('p2bet', 0.0)}")
+    print(f"p3bet: {result.get('p3bet', 0.0)}")
 
 
 if __name__ == "__main__":
