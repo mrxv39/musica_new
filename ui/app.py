@@ -8,6 +8,8 @@ from tkinter import ttk, messagebox
 
 from .constants import POSITIONS, ESTRATEGIAS_GLOBALES, SPOTS, STACK_MIN, STACK_MAX
 from .utils import safe_float, compute_situacion_from_positions, make_sub_id
+from .ranges import coerce_range_stack
+from .or_ranges import ORRangesPanel
 from .store import (
     load_store,
     save_store,
@@ -29,40 +31,17 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("musica_new — Estrategias (UI)")
-        self.geometry("1040x680")
-        self.minsize(980, 640)
+        self.geometry("1040x720")
+        self.minsize(980, 680)
 
         self.store = load_store()
         self.current_global = ESTRATEGIAS_GLOBALES[0]
         ensure_global(self.store, self.current_global)
-
         self.current_sub_index: int | None = None
 
         self._build_ui()
         self._set_global(self.current_global)
         self.on_generate()
-
-    # ================= RANGE HELPERS =================
-
-    def _coerce_range(self, wmin: ttk.Spinbox, wmax: ttk.Spinbox):
-        vmin = safe_float(wmin.get(), 0.0)
-        vmax = safe_float(wmax.get(), 0.0)
-
-        if vmin < STACK_MIN:
-            vmin = STACK_MIN
-        if vmax < STACK_MIN:
-            vmax = STACK_MIN
-        if vmin > STACK_MAX:
-            vmin = STACK_MAX
-        if vmax > STACK_MAX:
-            vmax = STACK_MAX
-        if vmin > vmax:
-            vmax = vmin
-
-        wmin.delete(0, "end")
-        wmin.insert(0, f"{vmin:.1f}")
-        wmax.delete(0, "end")
-        wmax.insert(0, f"{vmax:.1f}")
 
     # ================= UI =================
 
@@ -98,7 +77,6 @@ class App(tk.Tk):
         cols.columnconfigure(1, weight=1)
         cols.columnconfigure(2, weight=1)
 
-        # HERO defaults: rangos completos
         (
             self.p1_pos,
             self.p1_bet_min, self.p1_bet_max,
@@ -117,11 +95,10 @@ class App(tk.Tk):
             pad=pad,
             value_min=STACK_MIN,
             value_max=STACK_MAX,
-            on_range_changed=self._coerce_range,
+            on_range_changed=lambda a, b: coerce_range_stack(a, b),
         )
         self.p1_pos.master.grid(row=0, column=0, sticky="nsew", padx=(0, pad))
 
-        # P2
         (
             self.p2_pos,
             self.p2_tipo,
@@ -141,11 +118,10 @@ class App(tk.Tk):
             pad=pad,
             value_min=STACK_MIN,
             value_max=STACK_MAX,
-            on_range_changed=self._coerce_range,
+            on_range_changed=lambda a, b: coerce_range_stack(a, b),
         )
         self.p2_pos.master.grid(row=0, column=1, sticky="nsew", padx=(0, pad))
 
-        # P3
         (
             self.p3_pos,
             self.p3_tipo,
@@ -165,18 +141,22 @@ class App(tk.Tk):
             pad=pad,
             value_min=STACK_MIN,
             value_max=STACK_MAX,
-            on_range_changed=self._coerce_range,
+            on_range_changed=lambda a, b: coerce_range_stack(a, b),
         )
         self.p3_pos.master.grid(row=0, column=2, sticky="nsew")
 
         actions = ttk.Frame(main_top)
         actions.grid(row=2, column=0, sticky="ew", pady=(8, 0))
-        actions.columnconfigure(0, weight=1)
 
         ttk.Button(actions, text="Generar", command=self.on_generate).pack(side="left")
         ttk.Button(actions, text="Guardar subestrategia", command=self.on_save_sub).pack(side="left", padx=(10, 0))
         ttk.Button(actions, text="Nuevo (limpiar)", command=self.on_new).pack(side="left", padx=(10, 0))
         ttk.Button(actions, text="Copiar JSON", command=self.on_copy).pack(side="left", padx=(10, 0))
+
+        # OR panel (oculto hasta seleccionar subestrategia)
+        self.or_panel = ORRangesPanel(main_top, pad=pad)
+        self.or_panel.frame.grid(row=3, column=0, sticky="ew", pady=(10, 0))
+        self.or_panel.hide()
 
         # SIDEBAR
         sidebar = ttk.LabelFrame(root, text="Estrategias", padding=pad)
@@ -230,9 +210,9 @@ class App(tk.Tk):
         ensure_global(self.store, self.current_global)
         save_store(self.store)
         self.current_sub_index = None
-        if hasattr(self, "global_combo"):
-            self.global_combo.set(self.current_global)
+        self.global_combo.set(self.current_global)
         self.refresh_sub_list()
+        self.or_panel.hide()
 
     def refresh_sub_list(self):
         self.sub_list.delete(0, "end")
@@ -242,7 +222,7 @@ class App(tk.Tk):
     # ================= PAYLOAD =================
 
     def build_payload(self) -> dict:
-        # coerce all ranges
+        # coerce stack ranges
         for a, b in [
             (self.p1_bet_min, self.p1_bet_max),
             (self.p2_bet_min, self.p2_bet_max),
@@ -252,12 +232,11 @@ class App(tk.Tk):
             (self.p3_stack_min, self.p3_stack_max),
             (self.p1_se_min, self.p1_se_max),
         ]:
-            self._coerce_range(a, b)
+            coerce_range_stack(a, b)
 
         payload = {
             "estrategia_global": self.current_global,
             "spot": (self.spot_combo.get() or "").strip(),
-
             "p1_position": self.p1_pos.get().strip(),
             "p1_bet_min": safe_float(self.p1_bet_min.get(), 0.0),
             "p1_bet_max": safe_float(self.p1_bet_max.get(), 0.0),
@@ -265,14 +244,12 @@ class App(tk.Tk):
             "p1_stack_max": safe_float(self.p1_stack_max.get(), 0.0),
             "p1_stackef_min": safe_float(self.p1_se_min.get(), 0.0),
             "p1_stackef_max": safe_float(self.p1_se_max.get(), 0.0),
-
             "p2_position": self.p2_pos.get().strip(),
             "p2_tipo": self.p2_tipo.get().strip(),
             "p2_bet_min": safe_float(self.p2_bet_min.get(), 0.0),
             "p2_bet_max": safe_float(self.p2_bet_max.get(), 0.0),
             "p2_stack_min": safe_float(self.p2_stack_min.get(), 0.0),
             "p2_stack_max": safe_float(self.p2_stack_max.get(), 0.0),
-
             "p3_position": self.p3_pos.get().strip(),
             "p3_tipo": self.p3_tipo.get().strip(),
             "p3_bet_min": safe_float(self.p3_bet_min.get(), 0.0),
@@ -280,6 +257,9 @@ class App(tk.Tk):
             "p3_stack_min": safe_float(self.p3_stack_min.get(), 0.0),
             "p3_stack_max": safe_float(self.p3_stack_max.get(), 0.0),
         }
+
+        # OR fields (solo si el panel está visible/seleccionado)
+        payload.update(self.or_panel.build_payload_fields())
 
         payload["situacion"] = compute_situacion_from_positions(
             payload["p1_position"],
@@ -322,6 +302,7 @@ class App(tk.Tk):
         save_store(self.store)
         self.current_sub_index = None
         self.refresh_sub_list()
+        self.or_panel.hide()
         self.on_generate()
 
     def _on_global_changed(self, _evt=None):
@@ -347,20 +328,16 @@ class App(tk.Tk):
         self.p1_pos.set(payload.get("p1_position", "BTN"))
         self.p2_pos.set(payload.get("p2_position", "SB"))
         self.p3_pos.set(payload.get("p3_position", "BB"))
-
-        # tipos
         self.p2_tipo.set(payload.get("p2_tipo", "fish"))
         self.p3_tipo.set(payload.get("p3_tipo", "fish"))
 
-        # ranges (con compat)
         def _get(k, fallback):
             return payload.get(k, fallback)
 
-        # bet
+        # bet (compat)
         p1b = payload.get("p1_bet", _get("p1_bet_min", 0.0))
         p2b = payload.get("p2_bet", _get("p2_bet_min", 0.0))
         p3b = payload.get("p3_bet", _get("p3_bet_min", 0.0))
-
         self._set_entry(self.p1_bet_min, _get("p1_bet_min", p1b))
         self._set_entry(self.p1_bet_max, _get("p1_bet_max", p1b))
         self._set_entry(self.p2_bet_min, _get("p2_bet_min", p2b))
@@ -368,11 +345,10 @@ class App(tk.Tk):
         self._set_entry(self.p3_bet_min, _get("p3_bet_min", p3b))
         self._set_entry(self.p3_bet_max, _get("p3_bet_max", p3b))
 
-        # stack
+        # stack (compat)
         p1s = payload.get("p1_stack", _get("p1_stack_min", 0.0))
         p2s = payload.get("p2_stack", _get("p2_stack_min", 0.0))
         p3s = payload.get("p3_stack", _get("p3_stack_min", 0.0))
-
         self._set_entry(self.p1_stack_min, _get("p1_stack_min", p1s))
         self._set_entry(self.p1_stack_max, _get("p1_stack_max", p1s))
         self._set_entry(self.p2_stack_min, _get("p2_stack_min", p2s))
@@ -380,25 +356,26 @@ class App(tk.Tk):
         self._set_entry(self.p3_stack_min, _get("p3_stack_min", p3s))
         self._set_entry(self.p3_stack_max, _get("p3_stack_max", p3s))
 
-        # stack efectivo hero
+        # stack efectivo hero (compat)
         se = payload.get("stackefectivo", _get("p1_stackef_min", 0.0))
         self._set_entry(self.p1_se_min, _get("p1_stackef_min", se))
         self._set_entry(self.p1_se_max, _get("p1_stackef_max", se))
+
+        # OR ranges (strings)
+        self.or_panel.load_from_payload(payload)
+        self.or_panel.show()
 
         self.current_sub_index = idx
         self.on_generate()
 
     def on_new(self):
         self.spot_combo.set(SPOTS[0])
-
         self.p1_pos.set("BTN")
         self.p2_pos.set("SB")
         self.p3_pos.set("BB")
-
         self.p2_tipo.set("fish")
         self.p3_tipo.set("fish")
 
-        # defaults: full range
         for w in (
             self.p1_bet_min, self.p1_bet_max,
             self.p2_bet_min, self.p2_bet_max,
@@ -416,6 +393,9 @@ class App(tk.Tk):
             self.p1_se_max,
         ):
             self._set_entry(w, "75.0")
+
+        self.or_panel.reset()
+        self.or_panel.hide()
 
         self.current_sub_index = None
         self.sub_list.selection_clear(0, "end")

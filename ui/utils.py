@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+import re
+
+
+RANKS = "AKQJT98765432"
+
 
 def safe_float(s: str, default: float = 0.0) -> float:
     try:
@@ -60,3 +65,82 @@ def is_float_in_range(text: str, min_v: float, max_v: float) -> bool:
     except Exception:
         return False
     return (min_v <= v <= max_v)
+
+
+def _rank_index(r: str) -> int:
+    r = (r or "").strip().upper()
+    return RANKS.find(r)
+
+
+_pair_range_re = re.compile(r"^([AKQJT98765432])\1-([AKQJT98765432])\2$", re.I)
+_pair_single_re = re.compile(r"^([AKQJT98765432])\1$", re.I)
+
+
+def parse_flopzilla_range(expr: str) -> list[str]:
+    """
+    Parser mínimo para rangos estilo FlopZilla.
+
+    Soporta:
+      - Pares: "AA", "KK"
+      - Rangos de pares: "AA-99" => ["AA","KK","QQ","JJ","TT","99"]
+      - Listas separadas por coma/espacio: "AA,KK  QQ"
+
+    TODO (luego):
+      - Suited/offsuit: AKs, AKo
+      - Rangos tipo AJs-ATs, KQo-KJo, etc.
+      - "+" (JJ+, AQs+), etc.
+    """
+    expr = (expr or "").strip().upper()
+    if not expr:
+        return []
+
+    raw_tokens = []
+    for part in expr.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        raw_tokens.extend([t for t in part.split() if t.strip()])
+
+    out: list[str] = []
+    seen = set()
+
+    def _add(tok: str):
+        if tok not in seen:
+            seen.add(tok)
+            out.append(tok)
+
+    for tok in raw_tokens:
+        tok = tok.strip().upper()
+        if not tok:
+            continue
+
+        m = _pair_range_re.match(tok)
+        if m:
+            hi = m.group(1).upper()
+            lo = m.group(2).upper()
+            i_hi = _rank_index(hi)
+            i_lo = _rank_index(lo)
+            if i_hi == -1 or i_lo == -1:
+                _add(tok)
+                continue
+
+            # slice canónico desde hi -> lo si hi es más fuerte (más a la izquierda)
+            if i_hi <= i_lo:
+                rng = RANKS[i_hi : i_lo + 1]
+            else:
+                rng = RANKS[i_lo : i_hi + 1]
+
+            for r in rng:
+                _add(r + r)
+            continue
+
+        m2 = _pair_single_re.match(tok)
+        if m2:
+            r = m2.group(1).upper()
+            _add(r + r)
+            continue
+
+        # fallback: guardamos el token tal cual (para ampliar parser luego)
+        _add(tok)
+
+    return out
