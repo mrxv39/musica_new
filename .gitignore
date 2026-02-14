@@ -8,3 +8,5 @@ Thumbs.db
 
 # runtime/crops/generated
 preflop/crops/
+
+.vscode/
