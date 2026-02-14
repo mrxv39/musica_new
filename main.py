@@ -15,6 +15,8 @@ import encontrar_dealer
 import encontrar_stackefectivo
 import encontrar_bets
 import encontrar_stacks
+from encontrar_nombres import run_quiet as nombres_run
+from encontrar_jugador import run_quiet as jugador_run
 
 
 # ---- Config ----
@@ -120,6 +122,7 @@ def reconocer_mano_quiet(image_path: str) -> str:
 
 
 def run_pipeline_once(image_path: str = "") -> dict:
+    p2name, p3name = "", ""
     if not image_path:
         image_path = _latest_image_path()
 
@@ -167,6 +170,28 @@ def run_pipeline_once(image_path: str = "") -> dict:
     except Exception:
         p1stack = p2stack = p3stack = 0.0
 
+    # names
+    try:
+        if image_path:
+            p2name, p3name = nombres_run(image_path)
+    except Exception:
+        p2name, p3name = "", ""
+
+    # tipos jugador
+
+    p2tipo, p3tipo = "", ""
+
+    try:
+
+        if p2name or p3name:
+
+            p2tipo, p3tipo = jugador_run(p2name, p3name)
+
+    except Exception:
+
+        p2tipo, p3tipo = "", ""
+
+
     return {
         "mano": mano,
         "time": bool(time_found),
@@ -179,6 +204,10 @@ def run_pipeline_once(image_path: str = "") -> dict:
         "p1stack": p1stack,
         "p2stack": p2stack,
         "p3stack": p3stack,
+        "p2name": p2name,
+        "p3name": p3name,
+        "p2tipo": p2tipo,
+        "p3tipo": p3tipo,
     }
 
 
@@ -200,5 +229,13 @@ def main():
     print(f"p3stack: {result.get('p3stack', 0.0)}")
 
 
+    print(f"p2name: {result.get('p2name','')}")
+    print(f"p3name: {result.get('p3name','')}")
+    print(f"p2tipo: {result.get('p2tipo','')}")
+    print(f"p3tipo: {result.get('p3tipo','')}")
 if __name__ == "__main__":
     main()
+
+
+
+

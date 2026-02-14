@@ -1,23 +1,17 @@
+# Changelog — musica_new
 
-# Changelog – musica_new
+## 51163bc
+feat: add stacks OCR and include p1/p2/p3 stacks in main result
 
-## 2026-02-13 — init: estructura del proyecto
-ANTES:
-- Proyecto sin estructura estándar.
+## ff247f8
+feat: add stackefectivo OCR and include it in main result
 
-AHORA:
-- Archivos base y documentación viva inicializados.
+## c1f1c72
+feat: add dealer detection module
 
-IMPACTO:
-- Se reduce pérdida de contexto y "bugs fantasma".
+## e0c81d9
+fix: main result reflects actual detections
 
-## 2026-02-13 — Modular detection pipeline stabilized
-ANTES:
-- Proyecto en fase experimental sin salida limpia estructurada.
-
-AHORA:
-- Sistema modular estable con detección de mano, TIME y NOBOARD funcionando.
-- main.py orquesta módulos y devuelve resultados limpios.
-
-IMPACTO:
-- Base sólida para añadir nuevos detectores y evolucionar a realtime.
+## Proyecto actual
+Pipeline preflop completamente modular y estable.
+Todos los detectores funcionan correctamente.

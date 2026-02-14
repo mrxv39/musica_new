@@ -1,22 +1,53 @@
+# Wiki Usuario — musica_new
 
-# Wiki de usuario – musica_new
+## ¿Qué hace el sistema?
 
-## Qué es esta app
+Analiza una captura de mesa de poker (preflop) y devuelve:
 
-Aplicación que analiza una imagen de una mesa de poker preflop y detecta:
-- La mano del jugador.
-- Si el botón TIME está activo.
-- Si no hay cartas en el board.
+- Mano del héroe
+- Si es su turno
+- Si no hay board
+- Dealer
+- Stack efectivo
+- Apuestas actuales
+- Stacks individuales
 
-## Cómo empezar
+---
 
-1. Colocar imagen en la carpeta correspondiente.
-2. Ejecutar main.py.
-3. Leer la salida por consola.
+## Cómo ejecutar
 
-## Funcionalidades
+Colocar screenshot en carpeta:
 
-- Detección automática de dos cartas.
-- Validación de presencia de TIME.
-- Validación de ausencia de board.
-- Salida clara y limpia para integración futura.
+preflop/
+
+Ejecutar:
+
+python main.py
+
+Salida:
+
+--- RESULT ---
+mano: 3c8h
+time: True
+noboard: True
+dealer: p1
+stackefectivo: 25.0
+p1bet: 0.0
+p2bet: 0.5
+p3bet: 1.0
+p1stack: 25.0
+p2stack: 24.5
+p3stack: 24.0
+
+---
+
+## Debug
+
+Activar guardado de crops:
+
+$env:OCR_DEBUG_BETS="1"
+$env:OCR_DEBUG_STACKS="1"
+
+Los crops se guardan en:
+
+preflop/crops/
