@@ -1,124 +1,179 @@
-# Wiki Técnica — musica_new
+# Wiki Técnica — musica_new (v0.5.0)
 
-## Arquitectura General
+## 🧱 Arquitectura General
 
-Proyecto modular con 2 capas principales:
+musica_new está dividido en tres capas claramente separadas:
 
-1) **Vision / OCR (pipeline preflop)**  
-Basado en detección por imagen estática (`preflop/`) y módulos puros (sin prints).
-
-2) **UI Estrategias (Tkinter)**  
-Permite crear/gestionar estrategias y subestrategias con inputs normalizados (rangos).
+1️⃣ Vision Layer (Pipeline determinista)  
+2️⃣ UI Estrategias (editor de subestrategias)  
+3️⃣ Engine de decisión (encontrar_move.py)
 
 ---
 
-## Estructura de carpetas (alto nivel)
+# 1️⃣ Vision Layer
 
-- `preflop/`
-  - `templates/`
-  - `crops/`
-  - `screenshot_*.bmp`
-- `ui/`
-  - `app.py` (ventana principal)
-  - `widgets.py` (constructores de widgets reutilizables)
-  - `store.py` (persistencia de subestrategias)
-  - `utils.py` (helpers: safe_float, ids, situacion)
-  - `constants.py` (listas: POSITIONS, SPOTS, etc.)
-  - `__main__.py` (python -m ui)
+Entrada:
+- Imagen estática desde carpeta `/preflop`
 
----
+Salida (dict estructurado):
 
-## Pipeline preflop (Vision/OCR)
+{
+  mano: "3c8h",
+  dealer: "p1",
+  stackefectivo: float,
+  p1bet, p2bet, p3bet,
+  p1stack, p2stack, p3stack,
+  p2tipo, p3tipo
+}
 
-`main.py` orquesta módulos.
+Características:
 
-### reconocer_mano.py
-- Template matching TM_CCOEFF_NORMED
-- Threshold: 0.60
-- Devuelve string tipo "3c8h"
-
-### encontrar_time.py
-- ROI fija
-- matchTemplate contra time.bmp
-- Threshold 0.85
-
-### encontrar_noboard.py
-- Método estadístico
-- mean ≤ 35
-- std ≤ 18
-- dark_ratio ≥ 0.85
-
-### encontrar_dealer.py
-- matchTemplate dealer.png
-- Asignación por proximidad a anclas:
-  - top-left → p2
-  - top-right → p3
-  - bottom-center → p1
-
-### encontrar_stackefectivo.py
-- OCR Tesseract
-- Heurística decimal
-- run_quiet()
-
-### encontrar_bets.py
-- OCR con upscale x3
-- Doble binarización
-- Heurística punto decimal
-- Devuelve p1bet/p2bet/p3bet
-
-### encontrar_stacks.py
-- OCR con Otsu + fallback
-- Heurística decimal (245 → 24.5)
-- Devuelve p1stack/p2stack/p3stack
+- Sin estado persistente
+- Determinista
+- No depende de servidor
+- OCR estabilizado
+- main.py convierte cartas reales → notación estándar (83o)
 
 ---
 
-## Convenciones del pipeline
+# 🂡 Representación de manos
 
-- Todos los módulos exponen `run_quiet()`
-- Sin prints
-- Devuelven tipos puros
-- Debug activable por variables entorno `OCR_DEBUG_*`
+Pipeline detecta cartas reales:
+    3c8h
 
----
+Se normaliza a notación de rango:
+    83o
+    KQs
+    TT
+    AA
 
-## UI Estrategias (Tkinter)
-
-### Objetivo
-Construir una librería de subestrategias por “estrategia global” y visualizar el payload JSON.
-
-### Componentes principales
-- **Spot**: Combobox con filtrado (escritura + lista filtrada).
-- **HERO (p1)**:
-  - position
-  - bet_min / bet_max (0.0–75.0)
-  - stack_min / stack_max (0.0–75.0)
-  - stack efectivo (solo hero): stackef_min / stackef_max (0.0–75.0)
-- **P2 / P3**:
-  - position
-  - tipo (select)
-  - bet_min / bet_max (0.0–75.0)
-  - stack_min / stack_max (0.0–75.0)
-- **Sidebar**:
-  - selector de estrategia global
-  - lista de subestrategias (select → carga en formulario)
-  - borrar / refrescar
-- **Salida**:
-  - JSON generado (Text)
-  - botón copiar JSON
-
-### Validaciones
-- Todos los rangos se normalizan:
-  - clamp al intervalo [0.0, 75.0]
-  - si min > max ⇒ max = min
-
-### Persistencia (UI)
-La UI guarda subestrategias mediante `ui/store.py` (estructura tipo “store” con upsert/delete/list).
-El ID de subestrategia se deriva del payload (helper `make_sub_id`).
+Reglas:
+- Orden descendente
+- s = suited
+- o = offsuit
+- pares = AA
 
 ---
 
-## Estado actual
+# 2️⃣ UI Estrategias
 
-- Pipeline preflop: estable, determinista, sin estado previo.
-- UI estrategias: funcional, modular, con rangos y campos extra (stack efectivo hero + tipo villains).
+Ejecutable:
+
+    python -m ui
+
+Permite crear subestrategias agrupadas por:
+
+    estrategia_global
+
+Cada subestrategia contiene:
+
+## Identificación
+
+- spot
+- p1_position
+- p2_position
+- p3_position
+- situacion
+
+## Filtros numéricos
+
+- p1_bet_min / max
+- p1_stack_min / max
+- p1_stackef_min / max
+- p2_stack_min / max
+- p3_stack_min / max
+
+## Tipo de jugador
+
+- fish
+- fish_pasivo
+- fish_agresivo
+- reg
+- reg_pasivo
+- reg_agresivo
+
+## Bloques de movimiento
+
+Cada subestrategia puede definir:
+
+- open_push
+- or_to_push
+- or_to_call_small
+- or_to_fold
+
+Cada bloque contiene:
+
+{
+  rango estilo FlopZilla,
+  move: OR / PUSH / FOLD,
+  value_min,
+  value_max
+}
+
+Persistencia:
+
+    ui/estrategias_store.json
+
+---
+
+# 3️⃣ Engine de decisión (encontrar_move.py)
+
+Flujo:
+
+1. main.py ejecuta pipeline
+2. build_state_from_pipeline()
+3. encontrar_move(state)
+
+Proceso interno:
+
+1️⃣ Buscar subestrategia compatible
+   - match por spot
+   - posiciones
+   - tipos
+   - rangos numéricos
+
+2️⃣ Selección de bloque
+
+   PRIORIDAD:
+   - Primero se comprueba si la mano pertenece al rango del bloque
+   - Si coincide → ese bloque es seleccionado
+   - Si no coincide ningún bloque → fallback a or_to_fold (si existe)
+
+3️⃣ Devuelve:
+
+{
+  block,
+  move,
+  value_min,
+  value_max,
+  matched_by: "mano"
+}
+
+---
+
+# 📂 Estructura actual
+
+musica_new/
+│
+├── main.py
+├── encontrar_move.py
+├── preflop/
+│
+├── ui/
+│   ├── app.py
+│   ├── widgets.py
+│   ├── store.py
+│   ├── utils.py
+│   ├── constants.py
+│   └── estrategias_store.json
+│
+└── docs/
+    ├── wiki_tecnica.md
+    ├── wiki_usuario.md
+    ├── hoja_de_ruta.txt
+    └── changelog.md
+
+---
+
+Estado técnico: estable v0.5.0  
+Engine basado en pertenencia de mano a rango.

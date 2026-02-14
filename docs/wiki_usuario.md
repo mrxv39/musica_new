@@ -1,76 +1,89 @@
-# Wiki Usuario — musica_new
+# Wiki Usuario — musica_new (v0.5.0)
 
-## ¿Qué hace el sistema?
+## 🎯 Objetivo
 
-Tiene 2 partes:
-
-1) **Detector preflop**: analiza una captura y devuelve mano/estado (time, noboard, dealer, stacks, bets, stack efectivo).  
-2) **UI de estrategias**: permite crear y guardar subestrategias con rangos (bet/stack) y campos extra.
+Sistema automático de reconocimiento de mano y selección de movimiento preflop basado en estrategias configurables.
 
 ---
 
-## Cómo ejecutar el detector preflop
+# 🖥 Paso 1 — Crear Estrategias
 
-1) Coloca un screenshot en:
-- `preflop/`
+Ejecutar:
 
-2) Ejecuta:
-- `python main.py`
+    python -m ui
 
-Salida (ejemplo):
-- mano: 3c8h
-- time: True
-- noboard: True
-- dealer: p1
-- stackefectivo: 25.0
-- p1bet/p2bet/p3bet
-- p1stack/p2stack/p3stack
+En la interfaz:
 
----
+1. Crear subestrategia
+2. Definir:
+   - spot
+   - posiciones
+   - tipos de rival
+   - rangos de stack y bet
 
-## Cómo abrir la UI de estrategias
+3. Definir bloques:
 
-Ejecuta:
-- `python -m ui`
+   OR_TO_PUSH
+   OR_TO_CALL_SMALL
+   OR_TO_FOLD
+   OPEN_PUSH
 
----
+Cada bloque permite:
 
-## Crear una subestrategia (UI)
+- Pegar rango estilo FlopZilla:
+    AA-99
+    AKO-ATO
+    A9S-A2S
+- Seleccionar move
+- Definir value_min y value_max
 
-1) Selecciona el **spot** (puedes escribir para filtrar).
-2) Completa los campos:
-
-### HERO
-- position
-- bet min / bet max (0.0–75.0)
-- stack min / stack max (0.0–75.0)
-- stack efectivo min / max (0.0–75.0)
-
-### P2 y P3
-- position
-- tipo
-- bet min / bet max (0.0–75.0)
-- stack min / stack max (0.0–75.0)
-
-3) Pulsa **Generar** para ver el JSON.
-4) Pulsa **Guardar subestrategia** para guardarla en la estrategia global actual.
-5) En la barra lateral, al seleccionar una subestrategia, se cargan sus valores.
+Guardar.
 
 ---
 
-## Copiar y borrar
+# 🖥 Paso 2 — Ejecutar motor
 
-- **Copiar JSON**: copia el payload al portapapeles.
-- **Borrar subestrategia**: elimina la seleccionada.
-- **Refrescar**: vuelve a cargar la lista.
+    python main.py
+
+Salida ejemplo:
+
+--- REPORT ---
+
+HERO position: BTN  
+MANO: 83o  
+stackefectivo: 25.0  
+
+P2  
+  position: SB  
+  stack: 24.5  
+  bet: 0.5  
+  tipo: fish  
+
+P3  
+  position: BB  
+  stack: 24.0  
+  bet: 1.0  
+  tipo: fish  
+
+MOVE  
+  Subestrategia: BTN__BTN_vs_BB_SB__...  
+  Move: FOLD  
 
 ---
 
-## Debug (detector preflop)
+# 🧠 Cómo decide el sistema
 
-Ejemplos:
-- `$env:OCR_DEBUG_BETS="1"`
-- `$env:OCR_DEBUG_STACKS="1"`
+1️⃣ Busca subestrategia compatible  
+2️⃣ Comprueba si la mano pertenece a algún rango  
+3️⃣ Si pertenece → selecciona ese bloque  
+4️⃣ Si no pertenece → usa OR_TO_FOLD si existe  
 
-Crops:
-- `preflop/crops/`
+La decisión no depende únicamente del value actual.  
+La mano tiene prioridad.
+
+---
+
+# 📌 Versionado
+
+Versión actual: v0.5.0  
+Motor basado en rangos por mano.
