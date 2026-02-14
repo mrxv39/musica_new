@@ -2,52 +2,75 @@
 
 ## ¿Qué hace el sistema?
 
-Analiza una captura de mesa de poker (preflop) y devuelve:
+Tiene 2 partes:
 
-- Mano del héroe
-- Si es su turno
-- Si no hay board
-- Dealer
-- Stack efectivo
-- Apuestas actuales
-- Stacks individuales
+1) **Detector preflop**: analiza una captura y devuelve mano/estado (time, noboard, dealer, stacks, bets, stack efectivo).  
+2) **UI de estrategias**: permite crear y guardar subestrategias con rangos (bet/stack) y campos extra.
 
 ---
 
-## Cómo ejecutar
+## Cómo ejecutar el detector preflop
 
-Colocar screenshot en carpeta:
+1) Coloca un screenshot en:
+- `preflop/`
 
-preflop/
+2) Ejecuta:
+- `python main.py`
 
-Ejecutar:
-
-python main.py
-
-Salida:
-
---- RESULT ---
-mano: 3c8h
-time: True
-noboard: True
-dealer: p1
-stackefectivo: 25.0
-p1bet: 0.0
-p2bet: 0.5
-p3bet: 1.0
-p1stack: 25.0
-p2stack: 24.5
-p3stack: 24.0
+Salida (ejemplo):
+- mano: 3c8h
+- time: True
+- noboard: True
+- dealer: p1
+- stackefectivo: 25.0
+- p1bet/p2bet/p3bet
+- p1stack/p2stack/p3stack
 
 ---
 
-## Debug
+## Cómo abrir la UI de estrategias
 
-Activar guardado de crops:
+Ejecuta:
+- `python -m ui`
 
-$env:OCR_DEBUG_BETS="1"
-$env:OCR_DEBUG_STACKS="1"
+---
 
-Los crops se guardan en:
+## Crear una subestrategia (UI)
 
-preflop/crops/
+1) Selecciona el **spot** (puedes escribir para filtrar).
+2) Completa los campos:
+
+### HERO
+- position
+- bet min / bet max (0.0–75.0)
+- stack min / stack max (0.0–75.0)
+- stack efectivo min / max (0.0–75.0)
+
+### P2 y P3
+- position
+- tipo
+- bet min / bet max (0.0–75.0)
+- stack min / stack max (0.0–75.0)
+
+3) Pulsa **Generar** para ver el JSON.
+4) Pulsa **Guardar subestrategia** para guardarla en la estrategia global actual.
+5) En la barra lateral, al seleccionar una subestrategia, se cargan sus valores.
+
+---
+
+## Copiar y borrar
+
+- **Copiar JSON**: copia el payload al portapapeles.
+- **Borrar subestrategia**: elimina la seleccionada.
+- **Refrescar**: vuelve a cargar la lista.
+
+---
+
+## Debug (detector preflop)
+
+Ejemplos:
+- `$env:OCR_DEBUG_BETS="1"`
+- `$env:OCR_DEBUG_STACKS="1"`
+
+Crops:
+- `preflop/crops/`

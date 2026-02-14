@@ -1,74 +1,59 @@
 🧭 HOJA DE RUTA — musica_new
 
-📍 ESTADO ACTUAL (COMMIT 51163bc)
-
-Pipeline modular funcional basado en imagen estática (preflop/)
-
-Detectores implementados:
-
-✔ reconocer_mano.py
-✔ encontrar_time.py
-✔ encontrar_noboard.py
-✔ encontrar_dealer.py
-✔ encontrar_stackefectivo.py
-✔ encontrar_bets.py
-✔ encontrar_stacks.py
-
-Salida actual del sistema:
-
-mano
-time
-noboard
-dealer
-stackefectivo
-p1bet / p2bet / p3bet
-p1stack / p2stack / p3stack
-
-Arquitectura:
-
-main.py → orquesta módulos
-Cada módulo:
-- run_quiet()
-- Sin prints
-- Devuelve valores puros
-- Debug opcional por variable de entorno
-
-
 ---------------------------------------
-🚀 SIGUIENTE FASE — ENGINE LÓGICO
+✅ Implementado
 ---------------------------------------
 
-Objetivo:
-Transformar datos OCR en estado real de mesa.
+- Pipeline preflop modular por imagen estática (sin realtime, determinista) (6h)
+- Detectores:
+  - reconocer_mano.py (2h)
+  - encontrar_time.py (0.5h)
+  - encontrar_noboard.py (1h)
+  - encontrar_dealer.py (1h)
+  - encontrar_stackefectivo.py (1h)
+  - encontrar_bets.py (1h)
+  - encontrar_stacks.py (1h)
+- main.py orquesta módulos y devuelve dict limpio (1h)
+- Convención módulos: run_quiet(), sin prints, debug por env (1h)
 
-Crear:
-
-engine_state.py
-
-Debe calcular:
-
-- pot_size
-- effective_stack_real
-- SPR
-- action_type (fold/limp/open/raise/3bet)
-- hero_position
-- is_heads_up
-- preflop_phase
-
----------------------------------------
-🔜 FASE FUTURA
----------------------------------------
-
-- Captura continua (mss)
-- Máquina de estados realtime
-- Detección flop/turn/river
-- Integración IA
-- Eliminación total de OCR debug residual
+- UI Estrategias (Tkinter) (3h)
+  - Contenedor principal + layout: crear estrategia + sidebar + salida JSON (1h)
+  - Spot con combobox filtrable (0.5h)
+  - Rangos bet (min/max 0.0–75.0) para HERO/P2/P3 (0.5h)
+  - Rangos stack (min/max 0.0–75.0) para HERO/P2/P3 (0.5h)
+  - HERO: stack efectivo (min/max 0.0–75.0) (0.5h)
+  - P2/P3: campo tipo (select) (0.25h)
+  - Persistencia UI: subestrategias por estrategia global + cargar/borrar/refrescar (0.75h)
 
 ---------------------------------------
-🧱 REGLA ARQUITECTÓNICA
+🚀 Por implementar — CRÍTICAS
 ---------------------------------------
 
-Ningún módulo imprime.
-Todo devuelve datos.
-main solo presenta resultado.
+- engine_state.py: derivar estado de mesa desde OCR (6h)
+  - pot_size (1h)
+  - effective_stack_real (1h)
+  - SPR (1h)
+  - action_type (fold/limp/open/raise/3bet) (2h)
+  - hero_position refinado HU vs 3W (1h)
+
+- Integración UI ↔ Engine State (2h) [DEP: engine_state.py]
+  - botón “Evaluar” en UI (1h)
+  - salida engine_state en JSON (1h)
+
+---------------------------------------
+🔜 Por implementar — NO CRÍTICAS
+---------------------------------------
+
+- Captura continua (mss) + loop (6h)
+- Máquina de estados realtime (8h)
+- Detección flop/turn/river (6h)
+- Integración IA (variable)
+- Limpieza extra: eliminar cualquier debug residual no controlado (2h)
+
+---------------------------------------
+🧱 Reglas de arquitectura
+---------------------------------------
+
+- Ningún módulo imprime: todo devuelve datos.
+- main/UI solo presentan resultado.
+- Cambios visibles ⇒ actualizar wiki_tecnica, wiki_usuario y changelog.
