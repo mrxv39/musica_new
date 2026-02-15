@@ -177,3 +177,8 @@ musica_new/
 
 Estado técnico: estable v0.5.0  
 Engine basado en pertenencia de mano a rango.
+
+## v0.5.1 — Selección por mano y fallback
+- El engine elige bloque por pertenencia de mano a listas *_hands (con normalización).
+- Si no hay match de mano -> fallback duro: FOLD, value_min=0.0, value_max=0.0.
+

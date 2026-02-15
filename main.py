@@ -54,6 +54,8 @@ def _get_mano(image_path: str) -> str:
             mano = m.group(1)
 
     return str(mano).strip()
+
+
 def cards_to_notation(cards: str) -> str:
     """
     Convierte '3c8h' -> '83o'
@@ -184,6 +186,11 @@ def build_state_from_pipeline(result: dict) -> dict:
         "p3_stack": result.get("p3stack", 0.0),
         "stackefectivo": result.get("stackefectivo", 0.0),
         "situacion": "BTN_vs_BB_SB",
+
+        # CLAVE: mano en notación (83o, KQs, AA, etc.)
+        "mano": cards_to_notation(result.get("mano", "")),
+
+        # legacy (si alguien lo usa en el futuro)
         "value": result.get("p1bet", 0.0),
     }
 
@@ -201,7 +208,7 @@ def main():
 
     print("\n--- REPORT ---")
     print(f"HERO position: {state['p1_position']}")
-    print(f"MANO: {cards_to_notation(result['mano'])}")
+    print(f"MANO: {state.get('mano')}")
     print(f"stackefectivo: {result['stackefectivo']}")
 
     print("\nP2")
@@ -229,10 +236,11 @@ def main():
             print(f"  Move: {move.get('move')}")
             print(f"  Value min: {move.get('value_min')}")
             print(f"  Value max: {move.get('value_max')}")
+            print(f"  Block: {move.get('block')}")
+            print(f"  Matched by: {move.get('matched_by')}")
         else:
             print("  Move: (none)")
 
 
 if __name__ == "__main__":
     main()
-

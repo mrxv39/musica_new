@@ -13,3 +13,8 @@ preflop/crops/
 
 # backups
 *.bak
+
+# Backups
+*.bak_*
+*.off
+__pycache__/

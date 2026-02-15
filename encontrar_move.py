@@ -6,7 +6,7 @@ import argparse
 import json
 import os
 from dataclasses import dataclass
-from typing import Any, Optional, Tuple, List, Dict
+from typing import Any, Optional, Tuple, List
 
 
 # =========================
@@ -185,7 +185,7 @@ def find_best_match(state: dict, store_path: Optional[str] = None) -> Optional[d
 
 
 # =========================
-# MOVE selection inside matched strategy
+# MOVE selection (by hand membership) + fallback
 # =========================
 
 MOVE_BLOCKS_PRIORITY = [
@@ -196,19 +196,36 @@ MOVE_BLOCKS_PRIORITY = [
 ]
 
 
-def _get_state_value(state: dict) -> Optional[float]:
+def normalize_hand(hand: Any) -> str:
     """
-    Valor numérico para decidir bloque por *_value_min/max.
-    Acepta:
-      - value
-      - open_value
-      - bet
-      - p1_bet
+    Canonical:
+      - Ranks uppercase
+      - suitedness lowercase: s/o
+    Examples:
+      "83O" -> "83o"
+      "KQS" -> "KQs"
+      "aa"  -> "AA"
     """
-    for k in ("value", "open_value", "bet", "p1_bet"):
-        if k in state and state.get(k) not in (None, ""):
-            return _safe_float(state.get(k), None)  # type: ignore[arg-type]
-    return None
+    s = str(hand or "").strip()
+    if not s:
+        return ""
+    s = s.replace(" ", "")
+
+    # pares AA
+    if len(s) == 2:
+        return s[0].upper() + s[1].upper()
+
+    # suited/off
+    if len(s) == 3:
+        r1 = s[0].upper()
+        r2 = s[1].upper()
+        t = s[2].lower()
+        if t not in ("s", "o"):
+            t = s[2].upper()  # fallback (pero esperamos s/o)
+        return f"{r1}{r2}{t if isinstance(t,str) else 'o'}".replace("S", "s").replace("O", "o")
+
+    # si llega algo raro, devuélvelo normalizado lo mejor posible
+    return s.upper().replace("S", "s").replace("O", "o")
 
 
 def _get_block_payload(payload: dict, key_prefix: str) -> dict:
@@ -218,79 +235,83 @@ def _get_block_payload(payload: dict, key_prefix: str) -> dict:
         "move": (payload.get(f"{key_prefix}_move") or "").strip(),
         "value_min": _safe_float(payload.get(f"{key_prefix}_value_min", 0.0), 0.0),
         "value_max": _safe_float(payload.get(f"{key_prefix}_value_max", 0.0), 0.0),
+        "hands": payload.get(f"{key_prefix}_hands", []) or [],
     }
 
 
 def choose_move_from_payload(state: dict, payload: dict) -> dict:
     """
-    Devuelve:
-      - si puede decidir: {"block","move","value_min","value_max","range"}
-      - si no puede decidir: {"block":None, "reason":..., "blocks":[...]}
-    Reglas:
-      - si state trae selector_block (open_push/or_to_push/or_to_call_small/or_to_fold) -> usa ese bloque
-      - si no, usa state.value (o alias) y escoge el primer bloque cuyo value_min<=value<=value_max
-      - prioridad: open_push > or_to_push > or_to_call_small > or_to_fold
+    Reglas (v0.5.0 real):
+      - Selecciona bloque por pertenencia de MANO al rango expandido ( *_hands ).
+      - Prioridad: open_push > or_to_push > or_to_call_small > or_to_fold
+      - Si NO hay match en ningún bloque -> fallback:
+            move=FOLD, value_min=0.0, value_max=0.0, block="fallback"
     """
-    selector = (state.get("selector_block") or "").strip()
-    if selector:
-        if selector in MOVE_BLOCKS_PRIORITY:
-            b = _get_block_payload(payload, selector)
-            return {
-                "block": b["block"],
-                "move": b["move"],
-                "value_min": b["value_min"],
-                "value_max": b["value_max"],
-                "range": b["range"],
-            }
-        return {"block": None, "reason": f"selector_block inválido: {selector}", "blocks": []}
+    mano = normalize_hand(state.get("mano", ""))
 
-    v = _get_state_value(state)
     blocks = [_get_block_payload(payload, k) for k in MOVE_BLOCKS_PRIORITY]
 
-    # si no hay valor numérico para decidir, devolvemos resumen
-    if v is None:
+    # Si no hay mano en state, no podemos hacer match por mano -> fallback
+    if not mano:
         return {
-            "block": None,
-            "reason": "Falta valor numérico en state (usa 'value' o 'open_value' o 'bet' o 'p1_bet')",
-            "blocks": blocks,
+            "block": "fallback",
+            "move": "FOLD",
+            "value_min": 0.0,
+            "value_max": 0.0,
+            "range": "",
+            "matched_by": "fallback_missing_mano",
         }
 
-    # elegir por rango
     for b in blocks:
-        lo = float(b["value_min"])
-        hi = float(b["value_max"])
-        if lo > hi:
-            hi = lo
-        # si bloque no está definido (sin move y sin range) lo saltamos
-        if not b["move"] and not b["range"]:
+        hands = b.get("hands", [])
+        if not isinstance(hands, list):
             continue
-        if _in_range(float(v), lo, hi):
+
+        # normaliza hands al vuelo
+        hands_norm = {normalize_hand(x) for x in hands}
+        if mano in hands_norm:
             return {
                 "block": b["block"],
                 "move": b["move"],
-                "value_min": lo,
-                "value_max": hi,
+                "value_min": float(b["value_min"]),
+                "value_max": float(b["value_max"]),
                 "range": b["range"],
-                "state_value": float(v),
+                "matched_by": "mano",
+                "mano": mano,
             }
 
+    # fallback duro (lo que has pedido)
     return {
-        "block": None,
-        "reason": f"Ningún bloque coincide con value={v}",
-        "blocks": blocks,
+        "block": "fallback",
+        "move": "FOLD",
+        "value_min": 0.0,
+        "value_max": 0.0,
+        "range": "",
+        "matched_by": "fallback",
+        "mano": mano,
     }
 
 
 def encontrar_move(state: dict, store_path: Optional[str] = None) -> dict:
     """
-    Función principal para llamar desde main.py:
+    Función principal:
       - busca subestrategia
-      - decide move
-      - devuelve dict compacto
+      - decide move por mano
+      - si no hay match de subestrategia -> fallback duro también
     """
     match = find_best_match(state, store_path=store_path)
     if not match:
-        return {"match": None, "move": None}
+        return {
+            "match": None,
+            "move": {
+                "block": "fallback",
+                "move": "FOLD",
+                "value_min": 0.0,
+                "value_max": 0.0,
+                "range": "",
+                "matched_by": "fallback_no_substrategy",
+            },
+        }
 
     payload = match["payload"]
     move_info = choose_move_from_payload(state, payload)
