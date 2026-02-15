@@ -6,6 +6,22 @@ from encontrar_move import encontrar_move
 ROOT = Path(__file__).resolve().parents[1]
 STORE = ROOT / "ui" / "estrategias_store.json"
 
+def _pick_any_push_hand():
+    import json
+    d = json.loads(STORE.read_text(encoding="utf-8"))
+    # d puede ser dict global->list o list; cubrimos ambos
+    if isinstance(d, dict):
+        for gname, items in d.items():
+            if not isinstance(items, list):
+                continue
+            for it in items:
+                payload = (it or {}).get("payload", {}) or {}
+                hands = payload.get("or_to_push_hands") or []
+                if hands:
+                    return str(hands[0])
+    raise AssertionError("El store no contiene ninguna mano en or_to_push_hands; no se puede correr este test.")
+
+
 def _base_state(mano: str):
     return {
         "estrategia_global": "BASE",
@@ -27,10 +43,23 @@ def _base_state(mano: str):
     }
 
 def test_match_by_hand_is_case_insensitive_on_suitedness():
-    state = _base_state("83o")
+    hand = _pick_any_push_hand()
+    # Forzamos cambio de case en suitedness si aplica (83O -> 83o, etc)
+    hand2 = hand
+    if hand.endswith("O"):
+        hand2 = hand[:-1] + "o"
+    elif hand.endswith("o"):
+        hand2 = hand[:-1] + "O"
+    elif hand.endswith("S"):
+        hand2 = hand[:-1] + "s"
+    elif hand.endswith("s"):
+        hand2 = hand[:-1] + "S"
+
+    state = _base_state(hand2)
     res = encontrar_move(state, store_path=str(STORE))
     assert res["match"] is not None
     assert res["move"]["block"] == "or_to_push"
+    assert res["move"]["matched_by"] == "mano"
     assert res["move"]["move"] == "OR"
     assert res["move"]["matched_by"] == "mano"
 
