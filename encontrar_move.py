@@ -8,6 +8,34 @@ import os
 from dataclasses import dataclass
 from typing import Any, Optional, Tuple, List
 
+# === NASH OVERRIDE (BTN < 6bb) helpers ===
+try:
+    from engine.charts.nash_btn_3h import nash_btn_3h_decision
+except Exception:
+    nash_btn_3h_decision = None
+
+def _to_eff_bb(stackefectivo, bigblind):
+    try:
+        bb = float(bigblind)
+        if bb <= 0:
+            return None
+        return float(stackefectivo) / bb
+    except Exception:
+        return None
+
+def _normalize_hand_key_for_nash(hand_str):
+    """
+    Expect already normalized like '83o', 'T9s', 'AA'.
+    Safe normalizer: trims spaces, forces last char to lower for suitedness.
+    """
+    if not hand_str:
+        return None
+    s = str(hand_str).strip()
+    if len(s) >= 3 and s[-1] in ("O","S"):
+        s = s[:-1] + s[-1].lower()
+    return s
+# === END NASH HELPERS ===
+
 
 # =========================
 # Paths / Store
@@ -293,6 +321,29 @@ def choose_move_from_payload(state: dict, payload: dict) -> dict:
 
 
 def encontrar_move(state: dict, store_path: Optional[str] = None) -> dict:
+    # --- Nash override: BTN < 6bb => push/fold by chart ---
+    # Si estamos en BTN y tenemos <6bb, usamos Nash push/fold sin depender del store.
+    eff_bb = _to_eff_bb(state.get("stackefectivo"), state.get("bigblind") or state.get("bb"))
+    spot = state.get("spot")
+
+    if nash_btn_3h_decision and eff_bb is not None and eff_bb < 6.0:
+        # filtro suave por BTN; luego lo afinamos a spot exacto
+        if spot == "BTN":
+            hand_key = _normalize_hand_key_for_nash(state.get("mano"))
+            if hand_key:
+                push = nash_btn_3h_decision(hand_key, eff_bb)
+                return {
+                    "match": {"global": "__NASH__", "id": "__NASH_BTN_3H__", "payload": {}},
+                    "move": {
+                        "block": "nash_btn_3h_override",
+                        "move": "PUSH" if push else "FOLD",
+                        "value_min": 0.0,
+                        "value_max": 0.0,
+                        "range": "",
+                        "matched_by": "nash_btn_3h",
+                    },
+                }
+    # --- end override ---
     """
     Función principal:
       - busca subestrategia
@@ -371,3 +422,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+

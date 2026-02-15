@@ -206,3 +206,34 @@ Cancel → abort save
 This prevents silent duplication while keeping flexibility.
 
 ---
+
+# Range System (Refactor)
+
+## Nuevo comportamiento UI
+
+Cada fila de rango (OR_TO_PUSH, OR_TO_FOLD, OPEN_PUSH, etc):
+
+- Guarda internamente el rango real como string.
+- Muestra solo el contador de manos en la UI.
+- El rango completo se edita en popup estilo FlopZilla.
+
+Esto evita:
+- Desbordamiento visual.
+- Layout roto.
+- Ruido visual innecesario.
+
+## Nash Integration
+
+Se añadió:
+
+tools/make_btn_0_6_store.py
+
+Este script:
+- Lee chart engine/charts/nash_btn_3h_maxbb.json
+- Genera estrategia BASE
+- Inserta subestrategia BTNvsSB_BB_FISH_FISH_0_6
+
+Diseño:
+UI principal = editor estratégico
+Nash Editor = herramienta auxiliar independiente
+

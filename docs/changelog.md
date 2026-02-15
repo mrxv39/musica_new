@@ -46,3 +46,22 @@ IMPACTO:
 - UI store is now source of truth
 - Tests adapted to follow real store content
 
+
+## [UI Range Refactor + Nash Integration]
+
+### Added
+- Script tools/make_btn_0_6_store.py para generar estrategia BASE desde chart Nash.
+- Soporte para contador de manos en filas OR / OPEN.
+- Integración inicial de Nash Editor externo.
+
+### Changed
+- Las filas de rango ya no muestran el listado completo de manos.
+- Ahora muestran solo: "X manos".
+- El rango completo se edita vía popup.
+- Mejorado layout para evitar overflow horizontal.
+
+### Fixed
+- Problemas de indentación en or_ranges.py.
+- Errores al cargar payload con listas en lugar de string.
+- Desbordamiento visual de rangos largos.
+

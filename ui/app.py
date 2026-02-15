@@ -44,6 +44,17 @@ class App(tk.Tk):
         self.on_generate()
 
     # ================= UI =================
+    def _open_nash_editor(self):
+        """Open Nash Editor in a separate process (non-blocking)."""
+        try:
+            import subprocess, sys
+            subprocess.Popen([sys.executable, "-m", "ui.nash_editor"])
+        except Exception as e:
+            try:
+                from tkinter import messagebox
+                messagebox.showerror("Error", f"No se pudo abrir Nash Editor:\n{e}")
+            except Exception:
+                pass
 
     def _build_ui(self):
         pad = 10
@@ -481,3 +492,5 @@ class App(tk.Tk):
     def _set_entry(entry, value):
         entry.delete(0, "end")
         entry.insert(0, str(value))
+
+

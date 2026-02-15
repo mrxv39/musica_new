@@ -102,3 +102,18 @@ Si cambias campos clave (posiciones, tipos o stack efectivo), el sistema pregunt
 Esto evita duplicaciones accidentales.
 
 ---
+
+# Edición de Rangos
+
+En la sección Open Ranges:
+
+- Cada acción muestra solo el número de manos asignadas.
+- Para editar el rango:
+  → Haz click en el botón (ej: OPEN_PUSH).
+  → Se abrirá un popup donde puedes pegar rango estilo FlopZilla.
+
+Ejemplo válido:
+AA-99, AKo, KQs
+
+El sistema convertirá automáticamente el rango y actualizará el contador.
+

@@ -515,6 +515,24 @@
         "open_push_value_max": 75.0,
         "situacion": "BTN_vs_BB_SB"
       }
+    },
+    {
+      "id": "BTNvsSB_BB_FISH_FISH_0_6",
+      "payload": {
+        "spot": "BTN",
+        "situacion": "SB_BB",
+        "hero_position": "BTN",
+        "p2_position": "SB",
+        "p3_position": "BB",
+        "p2_tipo": "FISH",
+        "p3_tipo": "FISH",
+        "stackefectivo_min": 0,
+        "stackefectivo_max": 6,
+        "open_push": "22,33,44,54s,55,65s,66,75s,76s,77,86s,87s,88,96s,97s,98o,98s,99,A2o,A2s,A3o,A3s,A4o,A4s,A5o,A5s,A6o,A6s,A7o,A7s,A8o,A8s,A9o,A9s,AA,AJo,AJs,AKo,AKs,AQo,AQs,ATo,ATs,J3s,J4s,J5s,J6s,J7o,J7s,J8o,J8s,J9o,J9s,JJ,JTo,JTs,K2o,K2s,K3o,K3s,K4o,K4s,K5o,K5s,K6o,K6s,K7o,K7s,K8o,K8s,K9o,K9s,KJo,KJs,KK,KQo,KQs,KTo,KTs,Q2s,Q3s,Q4o,Q4s,Q5o,Q5s,Q6o,Q6s,Q7o,Q7s,Q8o,Q8s,Q9o,Q9s,QJo,QJs,QQ,QTo,QTs,T6s,T7s,T8o,T8s,T9o,T9s,TT",
+        "or_to_push": "",
+        "or_to_call_small": "",
+        "or_to_fold": ""
+      }
     }
   ]
 }
