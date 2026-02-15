@@ -278,8 +278,68 @@ class App(tk.Tk):
         self.txt.delete("1.0", "end")
         self.txt.insert("end", json.dumps(payload, indent=2, ensure_ascii=False))
 
+
+    def _sub_identity(self, payload: dict) -> tuple:
+        # Campos clave (B): posiciones + tipos + stacks (stackef preferente)
+        def pick(*keys, default=""):
+            for k in keys:
+                if k in payload and payload.get(k) is not None:
+                    return payload.get(k)
+            return default
+
+        def U(x, default=""):
+            s = str(x if x is not None else default).strip()
+            return s.upper()
+
+        def N(x, default=0.0):
+            try:
+                if x is None:
+                    return float(default)
+                return float(x)
+            except Exception:
+                try:
+                    return float(str(x).strip())
+                except Exception:
+                    return float(default)
+
+        spot = U(pick("spot", default=""))
+        situ = U(pick("situacion", "situation", default=""))
+
+        p1pos = U(pick("p1_position", "p1_pos", "hero_pos", "hero_position", "p1pos", default=""))
+        p2pos = U(pick("p2_position", "p2_pos", "villain1_pos", "p2pos", default=""))
+        p3pos = U(pick("p3_position", "p3_pos", "villain2_pos", "p3pos", default=""))
+
+        p2tipo = U(pick("p2tipo", "p2_tipo", "p2_type", default="UNK"))
+        p3tipo = U(pick("p3tipo", "p3_tipo", "p3_type", default="UNK"))
+
+        smin = N(pick("p1_stackef_min", "stackef_min", "stack_min", "p1_stack_min", default=0.0), 0.0)
+        smax = N(pick("p1_stackef_max", "stackef_max", "stack_max", "p1_stack_max", default=0.0), 0.0)
+
+        return (spot, situ, p1pos, p2pos, p3pos, p2tipo, p3tipo, round(smin, 3), round(smax, 3))
+
     def on_save_sub(self):
         payload = self.build_payload()
+        create_new = False  # bandera local: solo para este guardado
+        # Si estamos editando y cambian campos clave, preguntar: actualizar vs crear nueva
+        try:
+            editing = (self.current_sub_index is not None)
+            old_sig = getattr(self, '_selected_sub_identity', None)
+            new_sig = self._sub_identity(payload)
+            if editing and old_sig is not None and new_sig != old_sig:
+                res = messagebox.askyesnocancel(
+                    "Cambios detectados",
+                    "Has cambiado campos clave.\n\n"
+                    "Sí = actualizar la subestrategia actual\n"
+                    "No = crear una nueva\n"
+                    "Cancelar = no guardar"
+                )
+                if res is None:
+                    return
+                if res is False:
+                    create_new = True
+        except Exception:
+            # Si falla la comparación, no bloqueamos el guardado
+            pass
         sub_id = make_sub_id(payload)
         idx = upsert_sub(self.store, self.current_global, sub_id, payload)
         save_store(self.store)
@@ -366,6 +426,15 @@ class App(tk.Tk):
         self.or_panel.show()
 
         self.current_sub_index = idx
+        # Snapshot (para detectar cambios clave)
+        try:
+            items = self.store.get(self.current_global, [])
+            if 0 <= idx < len(items):
+                self._selected_sub_id = items[idx].get('id')
+                self._selected_sub_identity = self._sub_identity(items[idx].get('payload', {}))
+        except Exception:
+            self._selected_sub_id = None
+            self._selected_sub_identity = None
         self.on_generate()
 
     def on_new(self):

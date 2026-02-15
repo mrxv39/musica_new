@@ -37,34 +37,62 @@ def compute_situacion_from_positions(p1_pos: str, p2_pos: str, p3_pos: str) -> s
 
 
 def make_sub_id(payload: dict) -> str:
-    sit = payload.get("situacion", "UNK")
-    spot = payload.get("spot", "")
-    p1 = f"h{payload.get('p1_position','')}"
-    b = f"b{payload.get('p1_bet',0)}-{payload.get('p2_bet',0)}-{payload.get('p3_bet',0)}"
-    s = f"s{payload.get('p1_stack',0)}-{payload.get('p2_stack',0)}-{payload.get('p3_stack',0)}"
-    if spot:
-        return f"{spot}__{sit}__{p1}__{b}__{s}"
-    return f"{sit}__{p1}__{b}__{s}"
+    """
+    Genera un id humano y compacto para la subestrategia.
+
+    Formato:
+      {HERO}vs{V1}_{V2}_{P2TIPO}_{P3TIPO}_{STACK_MIN}_{STACK_MAX}
+
+    Ej:
+      BTNvsSB_BB_FISG_FISH_20_75
+    """
+    situ = (payload.get("situacion") or "").strip().upper()
+
+    hero = "UNK"
+    villains = []
+
+    if "_VS_" in situ:
+        left, right = situ.split("_VS_", 1)
+        hero = (left or "UNK").strip().upper()
+        villains = [v.strip().upper() for v in right.split("_") if v.strip()]
+    else:
+        hero = str(payload.get("hero_pos") or payload.get("hero") or "UNK").strip().upper()
+        vlist = payload.get("villains") or payload.get("villanos") or []
+        if isinstance(vlist, str):
+            vlist = [x for x in vlist.split("_") if x.strip()]
+        villains = [str(v).strip().upper() for v in vlist if str(v).strip()]
+
+    # Orden determinista: SB antes BB (y el resto por detrás)
+    order = {"SB": 0, "BB": 1, "BTN": 2, "CO": 3, "HJ": 4, "UTG": 5}
+    villains = sorted(villains, key=lambda x: order.get(x, 999))
+    vpart = "_".join(villains) if villains else "NONE"
+    p2tipo = str(payload.get("p2tipo") or payload.get("p2_tipo") or payload.get("p2_type") or "UNK").strip().upper()
+    p3tipo = str(payload.get("p3tipo") or payload.get("p3_tipo") or payload.get("p3_type") or "UNK").strip().upper()
+    def _as_int(x, default=0):
+        try:
+            if x is None:
+                return default
+            if isinstance(x, bool):
+                return int(x)
+            if isinstance(x, (int, float)):
+                return int(x)
+            s = str(x).strip()
+            if not s:
+                return default
+            return int(float(s))
+        except Exception:
+            return default
+    stack_min = _as_int(payload.get("p1_stackef_min") or payload.get("stackef_min") or payload.get("p1_stack_min") or payload.get("stack_min"), 0)
+    stack_max = _as_int(payload.get("p1_stackef_max") or payload.get("stackef_max") or payload.get("p1_stack_max") or payload.get("stack_max"), 0)
+    return f"{hero}vs{vpart}_{p2tipo}_{p3tipo}_{stack_min}_{stack_max}"
 
 
-def is_float_in_range(text: str, min_v: float, max_v: float) -> bool:
-    """
-    Tk validation helper:
-    - allows empty string while editing
-    - allows partial "0." while editing
-    - rejects non-numeric
-    - enforces min/max when parseable
-    """
-    t = (text or "").strip().replace(",", ".")
-    if t == "":
-        return True
-    if t in (".", "-"):
-        return False
-    try:
-        v = float(t)
-    except Exception:
-        return False
-    return (min_v <= v <= max_v)
+
+
+_pair_range_re = re.compile(r"^([AKQJT98765432])\1-([AKQJT98765432])\2$", re.I)
+_pair_single_re = re.compile(r"^([AKQJT98765432])\1$", re.I)
+
+
 
 
 def _rank_index(r: str) -> int:
@@ -144,3 +172,4 @@ def parse_flopzilla_range(expr: str) -> list[str]:
         _add(tok)
 
     return out
+
