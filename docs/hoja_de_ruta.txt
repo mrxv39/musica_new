@@ -18,4 +18,17 @@ FASE 5 — Integración realtime
 - Anti-duplicación de decisiones
 - Estado persistente mínimo
 
-Versión actual: v0.5.0
+Versión actual: v0.5.2
+
+[FASE 3 – UI Stabilization] ✅ COMPLETADA
+
+✔ Popup update/create
+✔ Identity-based comparison
+✔ Sub_id preservation
+✔ Stable commit
+
+Next logical phase:
+- Introduce pot_size to state
+- Introduce SPR
+- Refactor spot_selector vs block_selector (v0.6.0)
+

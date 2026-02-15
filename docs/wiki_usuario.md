@@ -1,4 +1,4 @@
-# Wiki Usuario — musica_new (v0.5.0)
+# Wiki Usuario — musica_new (v0.5.2)
 
 ## 🎯 Objetivo
 
@@ -85,5 +85,20 @@ La mano tiene prioridad.
 
 # 📌 Versionado
 
-Versión actual: v0.5.0  
+Versión actual: v0.5.2  
 Motor basado en rangos por mano.
+---
+
+## Editar subestrategias
+
+Al modificar una subestrategia existente:
+
+Si cambias campos clave (posiciones, tipos o stack efectivo), el sistema preguntará:
+
+- Sí → actualizar la actual
+- No → crear una nueva
+- Cancelar → no guardar
+
+Esto evita duplicaciones accidentales.
+
+---

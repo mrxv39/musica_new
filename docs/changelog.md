@@ -27,3 +27,22 @@ AHORA:
 IMPACTO:
 - Decisiones deterministas por mano y sin estados "none".
 
+# Changelog
+
+## v0.5.2
+
+### UI
+- Added update vs create-new popup when editing key fields
+- Prevent infinite chain of sub-strategy creation
+- Preserve sub_id when updating existing strategy
+- Introduced _sub_identity() to define identity fields
+
+### Engine
+- Hand-based matching stable
+- Hard fallback guaranteed
+- Case-insensitive suitedness matching
+
+### Store
+- UI store is now source of truth
+- Tests adapted to follow real store content
+
