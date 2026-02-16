@@ -18,8 +18,8 @@ from PIL import Image
 
 region_palo1  = (360, 405, 30, 40)
 region_palo2  = (410, 405, 30, 40)
-region_carta1 = (339, 408, 50, 35)
-region_carta2 = (389, 408, 50, 35)
+region_carta1 = (339, 408, 35, 35)
+region_carta2 = (389, 408, 35, 35)
 
 SUITS = ["c", "d", "h", "s"]
 RANKS = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"]
@@ -166,3 +166,22 @@ def run() -> None:
 
 def main() -> None:
     run()
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="Reconocer mano desde una imagen concreta")
+    parser.add_argument("--image", required=False, default="", help="Ruta a la imagen (bmp/png/jpg)")
+    args = parser.parse_args()
+
+    img = args.image.strip()
+    if img:
+        try:
+            res = run(img)
+        except TypeError:
+            # Si run() no acepta parámetro, fallback a ejecutar run() sin args
+            res = run()
+        print(res if res is not None else "")
+    else:
+        # Sin --image: comportamiento antiguo
+        res = run()
+        print(res if res is not None else "")
