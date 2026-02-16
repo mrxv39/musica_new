@@ -1,6 +1,7 @@
 # C:\Users\Usuario\Desktop\projectos\musica_new\encontrar_move.py
 
 from __future__ import annotations
+from range_expand import hand_in_tokens
 
 import argparse
 import json
@@ -297,7 +298,7 @@ def choose_move_from_payload(state: dict, payload: dict) -> dict:
 
         # normaliza hands al vuelo
         hands_norm = {normalize_hand(x) for x in hands}
-        if mano in hands_norm:
+        if hand_in_tokens(mano, hands):
             return {
                 "block": b["block"],
                 "move": b["move"],
@@ -422,6 +423,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
