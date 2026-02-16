@@ -1,3 +1,14 @@
+2026-02-16 - OCR rank-only stabilization
+
+ANTES:
+- ROI de rank incluia palo y fondo verde.
+
+AHORA:
+- ROI reducido a zona izquierda (rank-only).
+
+IMPACTO:
+- Eliminadas falsas detecciones J->3.
+- Reconocimiento estable de figuras.
 # Changelog — musica_new
 
 ## v0.5.0 — Engine por mano

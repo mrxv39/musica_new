@@ -1,4 +1,4 @@
-# Wiki Usuario — musica_new (v0.5.2)
+# Wiki Usuario — musica_new (v0.5.3)
 
 ## 🎯 Objetivo
 
@@ -85,7 +85,7 @@ La mano tiene prioridad.
 
 # 📌 Versionado
 
-Versión actual: v0.5.2  
+Versión actual: v0.5.3  
 Motor basado en rangos por mano.
 ---
 

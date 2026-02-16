@@ -18,7 +18,7 @@ FASE 5 — Integración realtime
 - Anti-duplicación de decisiones
 - Estado persistente mínimo
 
-Versión actual: v0.5.2
+Versión actual: v0.5.3
 
 [FASE 3 – UI Stabilization] ✅ COMPLETADA
 
