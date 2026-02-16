@@ -1,20 +1,26 @@
+# Databases
+data/*.db
+*.db
+
+# Python cache
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
-*.log
+
+# OS
 .DS_Store
 Thumbs.db
 
-# runtime/crops/generated
-preflop/crops/
-
-.vscode/
-
-# backups
-*.bak
-
 # Backups
+*.bak
 *.bak_*
 *.off
-__pycache__/
+
+
+# Runtime / local
+.vscode/
+db_hands/
+inspect_db.py
+preflop/crops/
+preflop/mesa*_current.bmp
+preflop/screenshot_*.bmp
+test.bmp
